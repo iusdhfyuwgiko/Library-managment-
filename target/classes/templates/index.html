@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ISME Knowledge Hub is a modern workspace for managing books, members, loans, and returns.">
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+    <title>ISME Knowledge Hub · Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        /* smooth in-page navigation; keeps sticky top bar from covering jump targets */
+        html { scroll-behavior: smooth; }
+        section, article { scroll-margin-top: 90px; }
+    </style>
+</head>
+<body class="theme-light" th:attr="data-active-section=${activeSection},data-target-section=${targetSection}">
+<div class="app-shell">
+    <aside class="sidebar">
+        <div class="brand-wrap">
+            <div class="brand-mark" style="background:#ffffff; width:64px; height:64px; padding:4px; border-radius:12px; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+    <img th:src="@{/images/isme-logo.jpg}" alt="ISME Logo" style="max-width:100%; max-height:100%; object-fit:contain;">
+</div>
+            <div class="brand-copy">
+                <div class="brand-name">ISME Knowledge Hub</div>
+                <div class="brand-subtitle">Operations hub</div>
+            </div>
+        </div>
+
+        <button class="sidebar-toggle" type="button" aria-label="Toggle sidebar">
+            <span>☰</span>
+        </button>
+
+        <nav class="nav" aria-label="Main navigation">
+            <a class="nav-item" data-nav="dashboard" href="#dashboard">
+                <span class="nav-icon">⌂</span>
+                <span>Dashboard</span>
+            </a>
+            <a class="nav-item" data-nav="books" href="#books">
+                <span class="nav-icon">📚</span>
+                <span>Books</span>
+            </a>
+            <a class="nav-item" data-nav="members" href="#members">
+                <span class="nav-icon">👥</span>
+                <span>Members</span>
+            </a>
+            <a class="nav-item" data-nav="borrowing" href="#borrowing">
+                <span class="nav-icon">📝</span>
+                <span>Borrowing</span>
+            </a>
+            <a class="nav-item" data-nav="returns" href="#returns">
+                <span class="nav-icon">↩</span>
+                <span>Returns</span>
+            </a>
+            <a class="nav-item" data-nav="reservations" href="#reservations">
+                <span class="nav-icon">📌</span>
+                <span>Reservations</span>
+            </a>
+            <a class="nav-item" data-nav="categories" href="#categories">
+                <span class="nav-icon">🏷</span>
+                <span>Categories</span>
+            </a>
+            <a class="nav-item" data-nav="authors" href="#authors">
+                <span class="nav-icon">✍</span>
+                <span>Authors</span>
+            </a>
+            <a class="nav-item" data-nav="fines" href="#fines">
+                <span class="nav-icon">💸</span>
+                <span>Fines</span>
+            </a>
+            <a class="nav-item" data-nav="reports" href="#reports">
+                <span class="nav-icon">📊</span>
+                <span>Reports</span>
+            </a>
+            <a class="nav-item" data-nav="notifications" href="#notifications">
+                <span class="nav-icon">🔔</span>
+                <span>Notifications</span>
+            </a>
+            <a class="nav-item" data-nav="settings" href="#settings">
+                <span class="nav-icon">⚙</span>
+                <span>Settings</span>
+            </a>
+        </nav>
+
+        <div class="profile-card">
+            <div class="avatar">AJ</div>
+            <div class="profile-meta">
+                <strong>Admin</strong>
+                <span>Librarian</span>
+            </div>
+        </div>
+    </aside>
+
+    <main class="main-panel">
+        <header class="topbar">
+            <label class="search-wrap" aria-label="Search the library">
+                <span class="search-icon">⌕</span>
+                <input id="librarySearch" type="search" placeholder="Search books by title, author, category, or ID..." />
+                <span id="searchFeedback" class="search-feedback" aria-live="polite"></span>
+            </label>
+
+            <div class="topbar-actions">
+                <button id="themeToggle" class="theme-button" type="button" aria-label="Toggle dark mode">🌙 Dark mode</button>
+                <div class="user-chip">
+                    <span class="avatar">AJ</span>
+                    <span>Admin</span>
+                </div>
+                <form class="signout-form" th:action="@{/logout}" method="post">
+                    <button class="ghost-button" type="submit">Sign out</button>
+                </form>
+            </div>
+        </header>
+
+        <section class="hero-shell" id="dashboard">
+            <img class="hero-photo" src="https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=1800&q=85" alt="A sunlit library lined with bookshelves">
+            <div class="hero-copy">
+                <div class="eyebrow-row">
+                    <span class="status-pill success">Live catalog</span>
+                    <span class="status-pill neutral">ISME Knowledge Hub</span>
+                </div>
+
+                <h1><span id="greetingText">Good morning</span>, Admin!</h1>
+                <p>Welcome to the ISME Knowledge Hub. Explore, borrow, and manage your library with ease.</p>
+
+                <div class="hero-actions">
+                    <button class="primary-button" type="button" data-scroll-target="addBookForm">Add New Book</button>
+                    <button class="secondary-button" type="button" data-scroll-target="issueBookForm">Issue / Return</button>
+                </div>
+            </div>
+
+            <div class="hero-context">
+                <time id="todayDate"></time>
+                <span class="hero-status"><span class="dot green"></span><strong id="statusBar">Loading dashboard...</strong></span>
+            </div>
+        </section>
+
+        <section class="stats-grid" aria-label="Library overview statistics">
+            <article class="stat-card card-surface">
+                <div class="stat-header">
+                    <span>Total Books</span>
+                    <span class="stat-icon blue">📚</span>
+                </div>
+                <div class="stat-value" id="statBooks">0</div>
+                <div class="stat-meta"><span id="statAvailable">0</span>&nbsp;copies available</div>
+            </article>
+
+            <article class="stat-card card-surface">
+                <div class="stat-header">
+                    <span>Total Members</span>
+                    <span class="stat-icon violet">↗</span>
+                </div>
+                <div class="stat-value" id="statMembers">0</div>
+                <div class="stat-meta">Registered readers</div>
+            </article>
+
+            <article class="stat-card card-surface">
+                <div class="stat-header">
+                    <span>Copies Issued</span>
+                    <span class="stat-icon amber">↗</span>
+                </div>
+                <div class="stat-value" id="statBorrowed">0</div>
+                <div class="stat-meta">Currently unavailable</div>
+            </article>
+
+            <article class="stat-card card-surface">
+                <div class="stat-header">
+                    <span>Books Overdue</span>
+                    <span class="stat-icon red">↩</span>
+                </div>
+                <div class="stat-value" id="statOverdue">0</div>
+                <div class="stat-meta"><span id="statDueToday">0</span>&nbsp;due today</div>
+            </article>
+        </section>
+
+        <section class="dashboard-grid">
+            <article class="card-surface panel category-panel" id="category-insights">
+                <div class="panel-header">
+                    <div>
+                        <p class="panel-kicker">Explore the collection</p>
+                        <h2>Book Category Distribution</h2>
+                    </div>
+                </div>
+
+                <div class="category-visual">
+                    <div class="category-donut" id="categoryDonut" role="img" aria-label="Book category distribution">
+                        <div class="donut-center">
+                            <strong id="categoryTotal">0</strong>
+                            <span>Total Books</span>
+                        </div>
+                    </div>
+                    <div id="categoryBreakdown" class="category-legend"></div>
+                </div>
+            </article>
+
+            <article class="card-surface panel issued-panel" id="recent-activity">
+                <div class="panel-header">
+                    <div>
+                        <p class="panel-kicker">Circulation</p>
+                        <h2>Recently Issued Books</h2>
+                    </div>
+                </div>
+
+                <div class="compact-table-wrap">
+                    <table class="compact-table">
+                        <thead><tr><th>Book</th><th>Member</th><th>Issue Date</th><th>Due Date</th></tr></thead>
+                        <tbody id="recentLoansBody"></tbody>
+                    </table>
+                    <p class="empty-state" id="recentLoansEmpty" hidden>No issued-book records yet.</p>
+                </div>
+            </article>
+
+            <article class="card-surface panel quick-panel">
+                <div class="panel-header">
+                    <div>
+                        <p class="panel-kicker">Shortcuts</p>
+                        <h2>Quick Actions</h2>
+                    </div>
+                </div>
+
+                <div class="quick-actions">
+                    <button class="quick-action blue-action" type="button" data-scroll-target="addBookForm">
+                        <span class="quick-icon">📘</span><span><strong>Add New Book</strong><small>Register a book to the library</small></span><span class="quick-arrow">›</span>
+                    </button>
+                    <button class="quick-action green-action" type="button" data-scroll-target="addMemberForm">
+                        <span class="quick-icon">●</span><span><strong>Add Member</strong><small>Register a new reader</small></span><span class="quick-arrow">›</span>
+                    </button>
+                    <button class="quick-action violet-action" type="button" data-scroll-target="issueBookForm">
+                        <span class="quick-icon">▣</span><span><strong>Issue Book</strong><small>Issue a book to a member</small></span><span class="quick-arrow">›</span>
+                    </button>
+                    <button class="quick-action red-action" type="button" data-scroll-target="returnBookForm">
+                        <span class="quick-icon">↩</span><span><strong>Return Book</strong><small>Process a book return</small></span><span class="quick-arrow">›</span>
+                    </button>
+                </div>
+            </article>
+
+            <article class="card-surface panel category-bars-panel" id="circulation-trend">
+                <div class="panel-header">
+                    <div>
+                        <p class="panel-kicker">Collection overview</p>
+                        <h2>Books by Category</h2>
+                    </div>
+                </div>
+
+                <div id="categoryBars" class="category-bars"></div>
+            </article>
+
+            <article class="card-surface panel overdue-panel">
+                <div class="panel-header">
+                    <div>
+                        <p class="panel-kicker">Due-date follow-up</p>
+                        <h2>Overdue Books</h2>
+                    </div>
+                </div>
+                <div class="compact-table-wrap">
+                    <table class="compact-table">
+                        <thead><tr><th>Book</th><th>Member</th><th>Days Overdue</th></tr></thead>
+                        <tbody id="overdueBooksBody"></tbody>
+                    </table>
+                    <p class="empty-state" id="overdueBooksEmpty" hidden>No overdue loans recorded.</p>
+                </div>
+            </article>
+
+            <article class="card-surface panel activity-panel">
+                <div class="panel-header">
+                    <div>
+                        <p class="panel-kicker">Circulation updates</p>
+                        <h2>Recent Activity</h2>
+                    </div>
+                </div>
+                <ul class="activity-list" id="activityList"></ul>
+                <p class="empty-state" id="activityEmpty" hidden>No circulation activity recorded yet.</p>
+            </article>
+
+            <article class="card-surface panel popular-panel">
+                <div class="panel-header">
+                    <div>
+                        <p class="panel-kicker">Reader favorites</p>
+                        <h2>Popular Books</h2>
+                    </div>
+                </div>
+                <div class="mini-book-list" id="popularBooks"></div>
+            </article>
+
+            <article class="card-surface panel members-dashboard-panel" id="members-dashboard">
+                <div class="panel-header">
+                    <div>
+                        <p class="panel-kicker">Reader directory</p>
+                        <h2>Members</h2>
+                    </div>
+                    <span class="member-count" id="membersPanelCount">0 registered</span>
+                </div>
+                <div class="member-list" id="memberList"></div>
+                <p class="empty-state" id="membersEmpty" hidden>No members registered yet.</p>
+            </article>
+        </section>
+
+        <section class="forms-layout">
+            <article class="card-surface panel form-panel">
+                <div class="panel-header">
+                    <div>
+                        <p class="panel-kicker">Catalog</p>
+                        <h2>Add Book</h2>
+                    </div>
+                </div>
+
+                <form id="addBookForm" class="library-form">
+                    <div class="form-grid">
+                        <div class="field">
+                            <label for="bookId">Book ID</label>
+                            <input id="bookId" name="bookId" type="text" placeholder="B-101" required>
+                        </div>
+                        <div class="field">
+                            <label for="totalCopies">Copies</label>
+                            <input id="totalCopies" name="totalCopies" type="number" min="1" value="1" required>
+                        </div>
+                        <div class="field full-span">
+                            <label for="title">Title</label>
+                            <input id="title" name="title" type="text" placeholder="Clean Code" required>
+                        </div>
+                        <div class="field">
+                            <label for="author">Author</label>
+                            <input id="author" name="author" type="text" placeholder="Robert Martin" required>
+                        </div>
+                        <div class="field">
+                            <label for="category">Category</label>
+                            <input id="category" name="category" type="text" placeholder="Programming" required>
+                        </div>
+                    </div>
+                    <button class="primary-button" type="submit">Save Book</button>
+                </form>
+            </article>
+
+            <article class="card-surface panel form-panel" id="members-panel">
+                <div class="panel-header">
+                    <div>
+                        <p class="panel-kicker">Membership</p>
+                        <h2>Add Member</h2>
+                    </div>
+                </div>
+
+                <form id="addMemberForm" class="library-form">
+                    <div class="form-grid">
+                        <div class="field">
+                            <label for="memberId">Member ID</label>
+                            <input id="memberId" name="memberId" type="text" placeholder="M-1001" required>
+                        </div>
+                        <div class="field">
+                            <label for="name">Name</label>
+                            <input id="name" name="name" type="text" placeholder="Alice Johnson" required>
+                        </div>
+                        <div class="field full-span">
+                            <label for="email">Email</label>
+                            <input id="email" name="email" type="email" placeholder="alice@example.com" required>
+                        </div>
+                    </div>
+                    <button class="primary-button" type="submit">Save Member</button>
+                </form>
+            </article>
+
+            <article class="card-surface panel form-panel" id="borrowing-panel">
+                <div class="panel-header">
+                    <div>
+                        <p class="panel-kicker">Transactions</p>
+                        <h2>Issue Book</h2>
+                    </div>
+                </div>
+
+                <form id="issueBookForm" class="library-form compact-form">
+                    <div class="form-grid">
+                        <div class="field">
+                            <label for="issueBookId">Book ID</label>
+                            <input id="issueBookId" name="bookId" type="text" placeholder="B-101" required>
+                        </div>
+                        <div class="field">
+                            <label for="issueMemberId">Member ID</label>
+                            <input id="issueMemberId" name="memberId" type="text" placeholder="M-1001" required>
+                        </div>
+                    </div>
+                    <button class="primary-button" type="submit">Issue Book</button>
+                </form>
+            </article>
+
+            <article class="card-surface panel form-panel" id="returns-panel">
+                <div class="panel-header">
+                    <div>
+                        <p class="panel-kicker">Transactions</p>
+                        <h2>Return Book</h2>
+                    </div>
+                </div>
+
+                <form id="returnBookForm" class="library-form compact-form">
+                    <div class="form-grid">
+                        <div class="field">
+                            <label for="returnBookId">Book ID</label>
+                            <input id="returnBookId" name="bookId" type="text" placeholder="B-101" required>
+                        </div>
+                        <div class="field">
+                            <label for="returnDate">Return Date</label>
+                            <input id="returnDate" name="returnDate" type="date">
+                        </div>
+                    </div>
+                    <button class="primary-button" type="submit">Return Book</button>
+                </form>
+            </article>
+        </section>
+
+        <section class="table-panel card-surface" id="book-inventory">
+            <div class="panel-header table-header">
+                <div>
+                    <p class="panel-kicker">Inventory</p>
+                    <h2>Book Inventory</h2>
+                </div>
+                <div class="table-tools">
+                    <button class="ghost-button" type="button">Filter</button>
+                    <button class="primary-button" type="button">Export</button>
+                </div>
+            </div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Title</th>
+                        <th id="authors">Author</th>
+                        <th>Category</th>
+                        <th>Available</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                    </tr>
+                    </thead>
+                    <tbody id="booksTableBody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="card-surface panel reservations-panel" id="reservations-panel">
+            <div class="panel-header">
+                <div>
+                    <p class="panel-kicker">Reservations</p>
+                    <h2>Reservation management is not connected yet</h2>
+                </div>
+            </div>
+            <p class="empty-copy">This library currently supports catalog, member, borrowing, and return workflows. Reservation records are not available in the current API.</p>
+        </section>
+    </main>
+</div>
+
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>
